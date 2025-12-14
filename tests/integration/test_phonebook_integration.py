@@ -19,9 +19,7 @@ class TestPhonebookIntegration:
         assert "phonebook_name" in data
         assert isinstance(data["entries"], list)
 
-    def test_create_phonebook_entry(
-        self, api_client: httpx.Client, test_phonebook_entry: dict
-    ):
+    def test_create_phonebook_entry(self, api_client: httpx.Client, test_phonebook_entry: dict):
         """Test creating a phonebook entry."""
         # Get initial count
         response = api_client.get("/api/v1/phonebook")
@@ -43,9 +41,7 @@ class TestPhonebookIntegration:
         # Cleanup
         api_client.delete(f"/api/v1/phonebook/{entry['id']}")
 
-    def test_update_phonebook_entry(
-        self, api_client: httpx.Client, test_phonebook_entry: dict
-    ):
+    def test_update_phonebook_entry(self, api_client: httpx.Client, test_phonebook_entry: dict):
         """Test updating a phonebook entry."""
         # Create entry first
         response = api_client.post("/api/v1/phonebook", json=test_phonebook_entry)
@@ -67,9 +63,7 @@ class TestPhonebookIntegration:
         # Cleanup
         api_client.delete(f"/api/v1/phonebook/{entry_id}")
 
-    def test_delete_phonebook_entry(
-        self, api_client: httpx.Client, test_phonebook_entry: dict
-    ):
+    def test_delete_phonebook_entry(self, api_client: httpx.Client, test_phonebook_entry: dict):
         """Test deleting a phonebook entry."""
         # Create entry first
         response = api_client.post("/api/v1/phonebook", json=test_phonebook_entry)
@@ -108,9 +102,7 @@ class TestPhonebookIntegration:
         assert "<?xml" in xml_content
         # Fanvil format check
 
-    def test_multiple_phonebook_entries(
-        self, api_client: httpx.Client, test_phonebook_entry: dict
-    ):
+    def test_multiple_phonebook_entries(self, api_client: httpx.Client, test_phonebook_entry: dict):
         """Test creating multiple phonebook entries."""
         entries_data = [
             {**test_phonebook_entry, "name": "Contact 1", "number": "111-1111"},

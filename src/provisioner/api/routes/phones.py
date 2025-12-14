@@ -1,7 +1,6 @@
 """Phone CRUD API endpoints."""
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -160,7 +159,7 @@ async def create_phone(
             repository.delete_phone(phone.mac)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Phone created but Asterisk reload failed. Changes rolled back."
+                detail="Phone created but Asterisk reload failed. Changes rolled back.",
             )
 
         # Get updated inventory
@@ -316,7 +315,7 @@ async def update_phone(
             # Note: Rollback for update is complex, so we just fail
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Phone updated but Asterisk reload failed."
+                detail="Phone updated but Asterisk reload failed.",
             )
 
         # Get updated phone
@@ -396,7 +395,7 @@ async def delete_phone(
             logger.warning(f"Phone {normalized_mac} deleted but Asterisk reload failed")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Phone deleted but Asterisk reload failed."
+                detail="Phone deleted but Asterisk reload failed.",
             )
 
     except PhoneNotFoundError as e:

@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from typing import Any
 
 from ..config import AsteriskConfig
 from ..exceptions import AsteriskError
@@ -86,12 +85,10 @@ class AMIClient:
             raise AsteriskError("Not connected to AMI. Call connect() first.")
 
         try:
-            response = await self.manager.send_action({
-                "Action": "PJSIPReload"
-            })
+            response = await self.manager.send_action({"Action": "PJSIPReload"})
 
             # Check response
-            if hasattr(response, 'success') and response.success:
+            if hasattr(response, "success") and response.success:
                 logger.info("PJSIP module reloaded successfully")
                 return True
             elif isinstance(response, dict) and response.get("Response") == "Success":
@@ -118,13 +115,12 @@ class AMIClient:
             raise AsteriskError("Not connected to AMI. Call connect() first.")
 
         try:
-            response = await self.manager.send_action({
-                "Action": "Command",
-                "Command": "dialplan reload"
-            })
+            response = await self.manager.send_action(
+                {"Action": "Command", "Command": "dialplan reload"}
+            )
 
             # Check response
-            if hasattr(response, 'success') and response.success:
+            if hasattr(response, "success") and response.success:
                 logger.info("Dialplan reloaded successfully")
                 return True
             elif isinstance(response, dict) and response.get("Response") == "Success":
@@ -154,13 +150,12 @@ class AMIClient:
             raise AsteriskError("Not connected to AMI. Call connect() first.")
 
         try:
-            response = await self.manager.send_action({
-                "Action": "PJSIPShowEndpoint",
-                "Endpoint": extension
-            })
+            response = await self.manager.send_action(
+                {"Action": "PJSIPShowEndpoint", "Endpoint": extension}
+            )
 
             # Check if endpoint exists
-            if hasattr(response, 'success') and response.success:
+            if hasattr(response, "success") and response.success:
                 return True
             elif isinstance(response, dict) and response.get("Response") == "Success":
                 return True
@@ -171,9 +166,7 @@ class AMIClient:
             logger.debug(f"Endpoint {extension} verification failed: {e}")
             return False
 
-    async def execute_with_retry(
-        self, operation: str, func, *args, **kwargs
-    ) -> bool:
+    async def execute_with_retry(self, operation: str, func, *args, **kwargs) -> bool:
         """Execute an AMI operation with retry logic.
 
         Args:

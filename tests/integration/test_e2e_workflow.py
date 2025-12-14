@@ -8,9 +8,7 @@ import pytest
 class TestEndToEndWorkflow:
     """Test complete end-to-end workflows."""
 
-    def test_complete_phone_lifecycle(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_complete_phone_lifecycle(self, api_client: httpx.Client, test_phone_data: dict):
         """Test complete phone lifecycle: create, read, update, delete."""
         mac = test_phone_data["mac"]
 
@@ -88,9 +86,7 @@ class TestEndToEndWorkflow:
         # Cleanup
         api_client.delete(f"/api/v1/phones/{phone_data['mac']}")
 
-    def test_provisioning_workflow(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_provisioning_workflow(self, api_client: httpx.Client, test_phone_data: dict):
         """Test complete provisioning workflow."""
         mac = test_phone_data["mac"]
 
@@ -113,9 +109,7 @@ class TestEndToEndWorkflow:
         # Cleanup
         api_client.delete(f"/api/v1/phones/{mac}")
 
-    def test_multi_tenant_scenario(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_multi_tenant_scenario(self, api_client: httpx.Client, test_phone_data: dict):
         """Test multiple phones with different configurations."""
         phones = [
             {

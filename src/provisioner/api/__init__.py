@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from .routes import phones, phonebook, settings
+from .routes import phonebook, phones, settings
 
 # Create main API router
 api_router = APIRouter()

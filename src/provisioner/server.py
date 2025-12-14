@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import Config, get_config, load_config, set_config
 from .generators import FanvilGenerator, YealinkGenerator
 from .generators.base import BaseGenerator
-from .inventory import Inventory, get_inventory, load_inventory, set_inventory
+from .inventory import get_inventory, load_inventory, set_inventory
 from .utils import detect_vendor, normalize_mac
 
 # Logger setup
@@ -24,9 +24,10 @@ logger = logging.getLogger("provisioner")
 
 class JSONFormatter(logging.Formatter):
     """JSON log formatter for Loki/Promtail integration."""
-    
+
     def format(self, record: logging.LogRecord) -> str:
         import json
+
         log_data = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
@@ -48,18 +49,18 @@ class JSONFormatter(logging.Formatter):
 def setup_logging(config: Config) -> None:
     """Configure logging based on config."""
     level = getattr(logging, config.server.log_level.upper(), logging.INFO)
-    
+
     handler = logging.StreamHandler(sys.stdout)
     if config.server.json_logs:
         handler.setFormatter(JSONFormatter())
     else:
-        handler.setFormatter(logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        ))
-    
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        )
+
     logger.setLevel(level)
     logger.addHandler(handler)
-    
+
     # Also set uvicorn loggers
     for name in ["uvicorn", "uvicorn.access", "uvicorn.error"]:
         logging.getLogger(name).handlers = [handler]
@@ -76,28 +77,28 @@ async def lifespan(app: FastAPI):
     config_path = Path.cwd() / "config.yml"
     config = load_config(config_path)
     set_config(config)
-    
+
     # Setup logging
     setup_logging(config)
-    
+
     # Load inventory
     inventory_dir = config.base_dir / config.paths.inventory_dir
     secrets_file = config.base_dir / config.paths.secrets_file
     inventory = load_inventory(inventory_dir, secrets_file if secrets_file.exists() else None)
     set_inventory(inventory)
-    
+
     # Initialize generators
     templates_dir = config.base_dir / config.paths.templates_dir
     generators["yealink"] = YealinkGenerator(templates_dir)
     generators["fanvil"] = FanvilGenerator(templates_dir)
-    
+
     logger.info(
         f"Provisioner started: {len(inventory.phones)} phones, "
         f"{len(inventory.phonebook)} phonebook entries"
     )
-    
+
     yield
-    
+
     logger.info("Provisioner shutting down")
 
 
@@ -111,6 +112,7 @@ app = FastAPI(
 
 # Include API router for REST endpoints
 from .api import api_router
+
 app.include_router(api_router, prefix="/api/v1")
 
 # Serve frontend static files if available
@@ -129,11 +131,7 @@ def get_client_ip(request: Request) -> str:
 
 
 def log_provisioning(
-    request: Request,
-    mac: str,
-    vendor: str | None,
-    status: str,
-    message: str = ""
+    request: Request, mac: str, vendor: str | None, status: str, message: str = ""
 ) -> None:
     """Log a provisioning request."""
     extra = {
@@ -168,7 +166,7 @@ async def stats() -> dict[str, Any]:
 @app.get("/{mac}.cfg")
 async def provision_auto(mac: str, request: Request) -> Response:
     """Auto-detect vendor and return configuration.
-    
+
     The phone vendor is detected from the MAC OUI prefix.
     """
     try:
@@ -176,23 +174,23 @@ async def provision_auto(mac: str, request: Request) -> Response:
     except ValueError as e:
         log_provisioning(request, mac, None, "error", str(e))
         raise HTTPException(status_code=400, detail=str(e))
-    
+
     config = get_config()
     inventory = get_inventory()
-    
+
     # Look up phone
     phone = inventory.get_phone_by_mac(normalized_mac)
     if not phone:
         log_provisioning(request, normalized_mac, None, "not_found", "Phone not in inventory")
         raise HTTPException(status_code=404, detail="Phone not found in inventory")
-    
+
     # Detect vendor from MAC or model
     oui_map = {
         "yealink": config.vendor_oui.yealink,
         "fanvil": config.vendor_oui.fanvil,
     }
     vendor = detect_vendor(normalized_mac, oui_map)
-    
+
     # Fall back to model-based detection
     if not vendor:
         model_lower = phone.model.lower()
@@ -200,18 +198,18 @@ async def provision_auto(mac: str, request: Request) -> Response:
             vendor = "yealink"
         elif "fanvil" in model_lower:
             vendor = "fanvil"
-    
+
     if not vendor or vendor not in generators:
         log_provisioning(request, normalized_mac, vendor, "error", "Unknown vendor")
         raise HTTPException(status_code=400, detail="Cannot determine phone vendor")
-    
+
     # Generate config
     generator = generators[vendor]
     settings = inventory.get_effective_settings(phone)
     content = generator.generate_config(settings)
-    
+
     log_provisioning(request, normalized_mac, vendor, "success")
-    
+
     return PlainTextResponse(
         content=content,
         media_type=generator.config_content_type,
@@ -237,26 +235,26 @@ async def _provision_vendor(vendor: str, mac: str, request: Request) -> Response
     except ValueError as e:
         log_provisioning(request, mac, vendor, "error", str(e))
         raise HTTPException(status_code=400, detail=str(e))
-    
+
     inventory = get_inventory()
-    
+
     # Look up phone
     phone = inventory.get_phone_by_mac(normalized_mac)
     if not phone:
         log_provisioning(request, normalized_mac, vendor, "not_found", "Phone not in inventory")
         raise HTTPException(status_code=404, detail="Phone not found in inventory")
-    
+
     if vendor not in generators:
         log_provisioning(request, normalized_mac, vendor, "error", "Unknown vendor")
         raise HTTPException(status_code=400, detail=f"Unknown vendor: {vendor}")
-    
+
     # Generate config
     generator = generators[vendor]
     settings = inventory.get_effective_settings(phone)
     content = generator.generate_config(settings)
-    
+
     log_provisioning(request, normalized_mac, vendor, "success")
-    
+
     return PlainTextResponse(
         content=content,
         media_type=generator.config_content_type,
@@ -278,14 +276,14 @@ async def phonebook_fanvil() -> Response:
 async def _phonebook(vendor: str) -> Response:
     """Internal handler for phonebook generation."""
     inventory = get_inventory()
-    
+
     if vendor not in generators:
         raise HTTPException(status_code=400, detail=f"Unknown vendor: {vendor}")
-    
+
     generator = generators[vendor]
     entries = [{"name": e.name, "number": e.number} for e in inventory.phonebook]
     content = generator.generate_phonebook(entries, inventory.phonebook_name)
-    
+
     return Response(
         content=content,
         media_type=generator.phonebook_content_type,
@@ -298,12 +296,12 @@ async def reload_inventory() -> dict[str, str]:
     config = get_config()
     inventory_dir = config.base_dir / config.paths.inventory_dir
     secrets_file = config.base_dir / config.paths.secrets_file
-    
+
     inventory = load_inventory(inventory_dir, secrets_file if secrets_file.exists() else None)
     set_inventory(inventory)
-    
+
     logger.info(f"Inventory reloaded: {len(inventory.phones)} phones")
-    
+
     return {
         "status": "reloaded",
         "phones": str(len(inventory.phones)),
@@ -316,7 +314,7 @@ def main() -> None:
     # Load config for server settings
     config_path = Path.cwd() / "config.yml"
     config = load_config(config_path)
-    
+
     uvicorn.run(
         "provisioner.server:app",
         host=config.server.host,

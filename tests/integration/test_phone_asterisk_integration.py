@@ -1,7 +1,6 @@
 """Integration tests for phone CRUD with Asterisk."""
 
 import asyncio
-import time
 
 import httpx
 import pytest
@@ -107,9 +106,7 @@ class TestPhoneAsteriskIntegration:
         phones = response.json()["phones"]
         assert not any(p["mac"] == mac for p in phones)
 
-    def test_phone_config_preview(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_phone_config_preview(self, api_client: httpx.Client, test_phone_data: dict):
         """Test phone configuration preview endpoint."""
         # Create phone
         response = api_client.post("/api/v1/phones", json=test_phone_data)
@@ -126,9 +123,7 @@ class TestPhoneAsteriskIntegration:
         assert config["vendor"] == "yealink"
         assert len(config["config"]) > 0  # Should have generated config
 
-    def test_multiple_phones_in_asterisk(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_multiple_phones_in_asterisk(self, api_client: httpx.Client, test_phone_data: dict):
         """Test creating multiple phones and verifying all in Asterisk."""
         phones_data = [
             {**test_phone_data, "mac": "001122334455", "extension": "201"},
@@ -155,9 +150,7 @@ class TestPhoneAsteriskIntegration:
         for phone_data in phones_data:
             api_client.delete(f"/api/v1/phones/{phone_data['mac']}")
 
-    def test_phone_with_custom_settings(
-        self, api_client: httpx.Client, test_phone_data: dict
-    ):
+    def test_phone_with_custom_settings(self, api_client: httpx.Client, test_phone_data: dict):
         """Test creating phone with custom settings."""
         custom_phone = {
             **test_phone_data,

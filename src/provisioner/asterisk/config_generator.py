@@ -193,7 +193,9 @@ class AsteriskConfigGenerator:
             result["success"] = False
             return result
 
-    def generate_single_endpoint(self, extension: str, display_name: str, password: str, codecs: list[str]) -> str:
+    def generate_single_endpoint(
+        self, extension: str, display_name: str, password: str, codecs: list[str]
+    ) -> str:
         """Generate PJSIP config for a single endpoint (for testing/debugging).
 
         Args:

@@ -1,5 +1,5 @@
 """API route modules."""
 
-from . import phones, phonebook, settings
+from . import phonebook, phones, settings
 
 __all__ = ["phones", "phonebook", "settings"]

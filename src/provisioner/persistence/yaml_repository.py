@@ -13,7 +13,14 @@ from ..exceptions import (
     PhonebookEntryNotFoundError,
     PhoneNotFoundError,
 )
-from ..inventory import GlobalSettings, Inventory, PhonebookEntry, PhoneEntry, load_inventory, set_inventory
+from ..inventory import (
+    GlobalSettings,
+    Inventory,
+    PhonebookEntry,
+    PhoneEntry,
+    load_inventory,
+    set_inventory,
+)
 from ..utils import normalize_mac
 from .backup import BackupManager
 
@@ -141,7 +148,9 @@ class YAMLRepository:
         # Check if extension is changing and if it's available
         if "extension" in updates and updates["extension"] != current_phone["extension"]:
             inventory = load_inventory(self.inventory_dir, self.secrets_file)
-            if not self._is_extension_available(inventory, updates["extension"], exclude_mac=normalized_mac):
+            if not self._is_extension_available(
+                inventory, updates["extension"], exclude_mac=normalized_mac
+            ):
                 raise DuplicateExtensionError(f"Extension {updates['extension']} is already in use")
 
         # Update phone fields
@@ -207,7 +216,7 @@ class YAMLRepository:
             raise PhoneNotFoundError(f"Phone {normalized_mac} not found")
 
         # Remove phone from list
-        removed_phone = phones_list.pop(phone_index)
+        phones_list.pop(phone_index)
 
         # Write updated data
         self._atomic_write_yaml(self.phones_file, phones_data)

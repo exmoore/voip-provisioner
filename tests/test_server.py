@@ -7,13 +7,14 @@ import pytest
 import yaml
 from fastapi.testclient import TestClient
 
+
 # We need to set up the environment before importing the server
 @pytest.fixture
 def test_environment():
     """Create a temporary environment with config and inventory."""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
-        
+
         # Create config
         config = {
             "server": {"host": "0.0.0.0", "port": 8080, "log_level": "WARNING", "json_logs": False},
@@ -28,14 +29,14 @@ def test_environment():
                 "fanvil": ["0C383E"],
             },
         }
-        
+
         with open(tmpdir / "config.yml", "w") as f:
             yaml.dump(config, f)
-        
+
         # Create inventory directory
         inv_dir = tmpdir / "inventory"
         inv_dir.mkdir()
-        
+
         phones = {
             "global": {"pbx_server": "test-pbx.local", "pbx_port": 5060},
             "phones": [
@@ -55,10 +56,10 @@ def test_environment():
                 },
             ],
         }
-        
+
         with open(inv_dir / "phones.yml", "w") as f:
             yaml.dump(phones, f)
-        
+
         phonebook = {
             "phonebook_name": "Test Directory",
             "phonebook": [
@@ -66,18 +67,18 @@ def test_environment():
                 {"name": "Test Fanvil", "number": "102"},
             ],
         }
-        
+
         with open(inv_dir / "phonebook.yml", "w") as f:
             yaml.dump(phonebook, f)
-        
+
         # Create templates directory
         tpl_dir = tmpdir / "templates"
         tpl_dir.mkdir()
-        
+
         # Yealink templates
         yealink_dir = tpl_dir / "yealink_t23g"
         yealink_dir.mkdir()
-        
+
         with open(yealink_dir / "mac.cfg.j2", "w") as f:
             f.write("""#!version:1.0.0.1
 account.1.enable = 1
@@ -85,7 +86,7 @@ account.1.user_name = {{ extension }}
 account.1.password = {{ password }}
 account.1.sip_server.1.address = {{ pbx_server }}
 """)
-        
+
         with open(yealink_dir / "phonebook.xml.j2", "w") as f:
             f.write("""<?xml version="1.0"?>
 <YealinkIPPhoneDirectory>
@@ -94,11 +95,11 @@ account.1.sip_server.1.address = {{ pbx_server }}
 {% endfor %}
 </YealinkIPPhoneDirectory>
 """)
-        
+
         # Fanvil templates
         fanvil_dir = tpl_dir / "fanvil_v64"
         fanvil_dir.mkdir()
-        
+
         with open(fanvil_dir / "mac.cfg.j2", "w") as f:
             f.write("""<< VOIP CONFIG FILE >>Version:2.0001
 SIP1 Enable = 1
@@ -106,7 +107,7 @@ SIP1 User ID = {{ extension }}
 SIP1 Authenticate Password = {{ password }}
 SIP1 Server Address = {{ pbx_server }}
 """)
-        
+
         with open(fanvil_dir / "phonebook.xml.j2", "w") as f:
             f.write("""<?xml version="1.0"?>
 <FanvilIPPhoneDirectory>
@@ -115,7 +116,7 @@ SIP1 Server Address = {{ pbx_server }}
 {% endfor %}
 </FanvilIPPhoneDirectory>
 """)
-        
+
         yield tmpdir
 
 
@@ -123,23 +124,23 @@ SIP1 Server Address = {{ pbx_server }}
 def client(test_environment, monkeypatch):
     """Create test client with configured environment."""
     import os
-    
+
     # Change to test directory so config.yml is found
     original_cwd = os.getcwd()
     os.chdir(test_environment)
-    
+
     # Import after changing directory
     from provisioner.server import app
-    
+
     with TestClient(app) as client:
         yield client
-    
+
     os.chdir(original_cwd)
 
 
 class TestHealthEndpoint:
     """Tests for /health endpoint."""
-    
+
     def test_health(self, client):
         response = client.get("/health")
         assert response.status_code == 200
@@ -148,7 +149,7 @@ class TestHealthEndpoint:
 
 class TestStatsEndpoint:
     """Tests for /stats endpoint."""
-    
+
     def test_stats(self, client):
         response = client.get("/stats")
         assert response.status_code == 200
@@ -159,17 +160,17 @@ class TestStatsEndpoint:
 
 class TestAutoProvision:
     """Tests for auto-detect provisioning."""
-    
+
     def test_provision_yealink_auto(self, client):
         response = client.get("/001565aabbcc.cfg")
         assert response.status_code == 200
         assert "account.1.user_name = 101" in response.text
-    
+
     def test_provision_fanvil_auto(self, client):
         response = client.get("/0c383e112233.cfg")
         assert response.status_code == 200
         assert "SIP1 User ID = 102" in response.text
-    
+
     def test_provision_not_found(self, client):
         response = client.get("/aabbccddeeff.cfg")
         assert response.status_code == 404
@@ -177,12 +178,12 @@ class TestAutoProvision:
 
 class TestVendorSpecificProvision:
     """Tests for vendor-specific endpoints."""
-    
+
     def test_yealink_endpoint(self, client):
         response = client.get("/yealink/001565aabbcc.cfg")
         assert response.status_code == 200
         assert "#!version:1.0.0.1" in response.text
-    
+
     def test_fanvil_endpoint(self, client):
         response = client.get("/fanvil/0c383e112233.cfg")
         assert response.status_code == 200
@@ -191,13 +192,13 @@ class TestVendorSpecificProvision:
 
 class TestPhonebook:
     """Tests for phonebook endpoints."""
-    
+
     def test_yealink_phonebook(self, client):
         response = client.get("/phonebook.xml")
         assert response.status_code == 200
         assert "YealinkIPPhoneDirectory" in response.text
         assert "Test Yealink" in response.text
-    
+
     def test_fanvil_phonebook(self, client):
         response = client.get("/fanvil/phonebook.xml")
         assert response.status_code == 200
@@ -206,7 +207,7 @@ class TestPhonebook:
 
 class TestReload:
     """Tests for inventory reload."""
-    
+
     def test_reload(self, client):
         response = client.get("/reload")
         assert response.status_code == 200

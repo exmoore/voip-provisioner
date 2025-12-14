@@ -10,6 +10,7 @@ from pydantic_settings import BaseSettings
 
 class ServerConfig(BaseModel):
     """Server configuration."""
+
     host: str = "0.0.0.0"
     port: int = 8080
     log_level: str = "INFO"
@@ -18,6 +19,7 @@ class ServerConfig(BaseModel):
 
 class PathsConfig(BaseModel):
     """File paths configuration."""
+
     inventory_dir: str = "inventory"
     templates_dir: str = "templates"
     secrets_file: str = "inventory/secrets.yml"
@@ -25,6 +27,7 @@ class PathsConfig(BaseModel):
 
 class PBXConfig(BaseModel):
     """PBX connection settings."""
+
     server: str = "pbx.example.com"
     port: int = 5060
     transport: str = "UDP"
@@ -32,18 +35,21 @@ class PBXConfig(BaseModel):
 
 class TimeConfig(BaseModel):
     """Time/NTP settings."""
+
     ntp_server: str = "pool.ntp.org"
     timezone: str = "America/New_York"
 
 
 class VendorOUI(BaseModel):
     """MAC OUI prefixes for vendor detection."""
+
     yealink: list[str] = Field(default_factory=lambda: ["001565", "805E0C", "805EC0"])
     fanvil: list[str] = Field(default_factory=lambda: ["0C383E", "7C2F80"])
 
 
 class AsteriskConfig(BaseModel):
     """Asterisk AMI configuration."""
+
     enabled: bool = False
     host: str = "localhost"
     port: int = 5038
@@ -68,6 +74,7 @@ class AsteriskConfig(BaseModel):
 
 class Config(BaseSettings):
     """Main configuration container."""
+
     server: ServerConfig = Field(default_factory=ServerConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
     pbx: PBXConfig = Field(default_factory=PBXConfig)
@@ -81,10 +88,10 @@ class Config(BaseSettings):
 
 def load_config(config_path: Path | str | None = None) -> Config:
     """Load configuration from YAML file.
-    
+
     Args:
         config_path: Path to config.yml. If None, looks in current directory.
-        
+
     Returns:
         Populated Config object.
     """
@@ -92,16 +99,16 @@ def load_config(config_path: Path | str | None = None) -> Config:
         config_path = Path.cwd() / "config.yml"
     else:
         config_path = Path(config_path)
-    
+
     base_dir = config_path.parent
-    
+
     config_data: dict[str, Any] = {}
     if config_path.exists():
         with open(config_path) as f:
             config_data = yaml.safe_load(f) or {}
-    
+
     config_data["base_dir"] = base_dir
-    
+
     # Parse nested config sections
     config = Config(
         server=ServerConfig(**config_data.get("server", {})),
@@ -112,7 +119,7 @@ def load_config(config_path: Path | str | None = None) -> Config:
         asterisk=AsteriskConfig(**config_data.get("asterisk", {})),
         base_dir=base_dir,
     )
-    
+
     return config
 
 

@@ -1,7 +1,5 @@
 """FastAPI dependencies for API routes."""
 
-from pathlib import Path
-
 from fastapi import Depends
 
 from ..config import Config, get_config

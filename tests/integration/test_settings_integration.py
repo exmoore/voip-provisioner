@@ -22,9 +22,7 @@ class TestSettingsIntegration:
         assert "codecs" in settings
         assert isinstance(settings["codecs"], list)
 
-    def test_update_settings(
-        self, api_client: httpx.Client, test_settings_data: dict
-    ):
+    def test_update_settings(self, api_client: httpx.Client, test_settings_data: dict):
         """Test updating global settings."""
         # Get original settings
         response = api_client.get("/api/v1/settings")
@@ -64,9 +62,7 @@ class TestSettingsIntegration:
         phone = response.json()
         # effective_settings should contain global settings
         assert phone["effective_settings"] is not None
-        assert (
-            phone["effective_settings"]["pbx_server"] == test_settings_data["pbx_server"]
-        )
+        assert phone["effective_settings"]["pbx_server"] == test_settings_data["pbx_server"]
 
         # Cleanup
         api_client.delete(f"/api/v1/phones/{phone_data['mac']}")
@@ -99,9 +95,7 @@ class TestSettingsIntegration:
         response = api_client.put("/api/v1/settings", json=invalid_settings)
         assert response.status_code == 422  # Validation error
 
-    def test_settings_persistence(
-        self, api_client: httpx.Client, test_settings_data: dict
-    ):
+    def test_settings_persistence(self, api_client: httpx.Client, test_settings_data: dict):
         """Test that settings persist across requests."""
         # Update settings
         response = api_client.put("/api/v1/settings", json=test_settings_data)

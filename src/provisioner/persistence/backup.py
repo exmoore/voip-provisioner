@@ -51,10 +51,12 @@ class BackupManager:
         """
         # Find all backups for this file
         pattern = f"{file_stem}_*{file_suffix}"
-        backups = sorted(self.backup_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+        backups = sorted(
+            self.backup_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
+        )
 
         # Remove old backups beyond max_backups
-        for old_backup in backups[self.max_backups:]:
+        for old_backup in backups[self.max_backups :]:
             old_backup.unlink()
 
     def restore_backup(self, backup_path: Path, target_path: Path) -> None:
@@ -81,8 +83,6 @@ class BackupManager:
         """
         pattern = f"{file_stem}_*{file_suffix}"
         backups = sorted(
-            self.backup_dir.glob(pattern),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True
+            self.backup_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
         )
         return backups

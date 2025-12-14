@@ -1,11 +1,9 @@
 """Pytest fixtures for integration tests."""
 
-import asyncio
-import os
 import subprocess
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import httpx
 import pytest
