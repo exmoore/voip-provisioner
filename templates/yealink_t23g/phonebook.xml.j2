@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<YealinkIPPhoneDirectory>
+  <Title>{{ phonebook_name }}</Title>
+  <Prompt>Select Contact</Prompt>
+{% for entry in entries %}
+  <DirectoryEntry>
+    <Name>{{ entry.name | e }}</Name>
+    <Telephone>{{ entry.number | e }}</Telephone>
+  </DirectoryEntry>
+{% endfor %}
+</YealinkIPPhoneDirectory>

@@ -1,0 +1,44 @@
+# Phone Inventory
+# ===============
+# Define all phones to be provisioned here.
+# MAC addresses can use any format (colons, dashes, dots, or none).
+
+# Global settings applied to all phones (can be overridden per-phone)
+global:
+  pbx_server: "pbx.brcs.local"
+  pbx_port: 5060
+  transport: "UDP"
+  ntp_server: "pool.ntp.org"
+  timezone: "America/New_York"
+  
+  # Codec preferences (in order of preference)
+  codecs:
+    - "PCMU"    # G.711 μ-law
+    - "PCMA"    # G.711 A-law
+    - "G722"    # Wideband
+
+# Phone definitions
+phones:
+  # Yealink T23G example
+  - mac: "00:15:65:12:34:56"
+    model: "yealink_t23g"
+    extension: "101"
+    display_name: "Front Office"
+    password: "changeme101"
+    # Optional overrides:
+    # pbx_server: "different-pbx.example.com"
+    # label: "Reception"  # Line label (defaults to display_name)
+    
+  # Fanvil V64 example
+  - mac: "0C:38:3E:AA:BB:CC"
+    model: "fanvil_v64"
+    extension: "102"
+    display_name: "Main Office"
+    password: "changeme102"
+    
+  # Additional phones...
+  # - mac: "00:15:65:78:9A:BC"
+  #   model: "yealink_t23g"
+  #   extension: "103"
+  #   display_name: "Conference Room"
+  #   password: "changeme103"

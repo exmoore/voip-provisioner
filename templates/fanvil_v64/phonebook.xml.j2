@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FanvilIPPhoneDirectory>
+  <DirectoryName>{{ phonebook_name }}</DirectoryName>
+{% for entry in entries %}
+  <DirectoryEntry>
+    <Name>{{ entry.name | e }}</Name>
+    <Telephone>{{ entry.number | e }}</Telephone>
+    <default_photo/>
+  </DirectoryEntry>
+{% endfor %}
+</FanvilIPPhoneDirectory>

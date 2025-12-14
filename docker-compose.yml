@@ -1,0 +1,49 @@
+# Docker Compose for VOIP Provisioning Server
+# ============================================
+# Usage:
+#   docker-compose up -d
+#   docker-compose logs -f
+
+version: "3.8"
+
+services:
+  provisioner:
+    build: .
+    image: voip-provisioner:latest
+    container_name: voip-provisioner
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount inventory for phone definitions
+      - ./inventory:/app/inventory:ro
+      # Optionally mount custom config
+      # - ./config.yml:/app/config.yml:ro
+      # Optionally mount custom templates
+      # - ./templates:/app/templates:ro
+    environment:
+      # Override settings via environment if needed
+      # - PROVISIONER_LOG_LEVEL=DEBUG
+      - TZ=America/New_York
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        # For Loki integration, use:
+        # driver: loki
+        # options:
+        #   loki-url: "http://loki:3100/loki/api/v1/push"
+        #   loki-batch-size: "400"
+
+# Optional: Add to existing network (e.g., with Loki/Grafana)
+# networks:
+#   default:
+#     external:
+#       name: monitoring

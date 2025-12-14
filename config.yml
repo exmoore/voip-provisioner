@@ -1,0 +1,46 @@
+# VOIP Provisioning Server Configuration
+# ========================================
+
+server:
+  # Server binding
+  host: "0.0.0.0"
+  port: 8080
+  
+  # Logging level: DEBUG, INFO, WARNING, ERROR
+  log_level: "INFO"
+  
+  # JSON logging for Loki/Promtail integration
+  json_logs: true
+
+paths:
+  # Inventory files location
+  inventory_dir: "inventory"
+  
+  # Jinja2 templates location
+  templates_dir: "templates"
+  
+  # Secrets file (optional, for password storage)
+  secrets_file: "inventory/secrets.yml"
+
+# Global PBX settings (can be overridden per-phone in inventory)
+pbx:
+  server: "pbx.example.com"
+  port: 5060
+  transport: "UDP"  # UDP, TCP, or TLS
+  
+# Time settings
+time:
+  ntp_server: "pool.ntp.org"
+  timezone: "America/New_York"
+
+# Vendor MAC OUI prefixes for auto-detection
+# Format: list of 3-byte hex prefixes (no separators)
+vendor_oui:
+  yealink:
+    - "001565"
+    - "805E0C"
+    - "805EC0"
+    - "245EBE"
+  fanvil:
+    - "0C383E"
+    - "7C2F80"

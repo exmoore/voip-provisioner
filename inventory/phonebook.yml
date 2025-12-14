@@ -1,0 +1,45 @@
+# Phone Directory / Phonebook
+# ============================
+# Entries will be provisioned to all phones.
+# Both Yealink and Fanvil formats are generated from this single source.
+
+# Phonebook metadata
+phonebook_name: "BRCS Directory"
+
+# Directory entries
+phonebook:
+  # Internal extensions
+  - name: "Front Office"
+    number: "101"
+    
+  - name: "Main Office"
+    number: "102"
+    
+  - name: "Principal"
+    number: "103"
+    
+  - name: "Conference Room"
+    number: "104"
+    
+  - name: "Teacher's Lounge"
+    number: "105"
+    
+  # Speed dials / External numbers
+  - name: "Voicemail"
+    number: "*97"
+    
+  - name: "Echo Test"
+    number: "*43"
+
+# Groups (optional, for phones that support grouping)
+groups:
+  - name: "Staff"
+    members:
+      - "101"
+      - "102"
+      - "103"
+      
+  - name: "Classrooms"
+    members:
+      - "104"
+      - "105"

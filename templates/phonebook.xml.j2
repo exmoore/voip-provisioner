@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IPPhoneDirectory>
+  <Title>{{ phonebook_name }}</Title>
+{% for entry in entries %}
+  <DirectoryEntry>
+    <Name>{{ entry.name | e }}</Name>
+    <Telephone>{{ entry.number | e }}</Telephone>
+  </DirectoryEntry>
+{% endfor %}
+</IPPhoneDirectory>
