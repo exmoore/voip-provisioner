@@ -3,15 +3,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies first (for better caching)
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e .
-
 # Copy application code
 COPY src/ src/
 COPY templates/ templates/
 COPY inventory/ inventory/
 COPY config.yml .
+
+# Install dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e .
 
 # Update config.yml with Asterisk test settings
 # This appends the asterisk configuration to the existing config.yml
