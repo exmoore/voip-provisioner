@@ -44,3 +44,29 @@ vendor_oui:
   fanvil:
     - "0C383E"
     - "7C2F80"
+
+# Asterisk AMI integration (optional)
+asterisk:
+  # Enable Asterisk integration
+  enabled: false
+
+  # Asterisk Manager Interface (AMI) connection
+  host: "localhost"
+  port: 5038
+  username: "admin"
+  password: "secret"  # Consider using environment variable: ${ASTERISK_AMI_PASSWORD}
+  timeout: 5
+
+  # Configuration file paths (on Asterisk server or shared Docker volume)
+  pjsip_config_path: "/etc/asterisk/pjsip.conf"
+  extensions_config_path: "/etc/asterisk/extensions.conf"
+
+  # PJSIP generation settings
+  context: "from-internal"  # Default dialplan context for endpoints
+  transport: "transport-udp"  # PJSIP transport name
+
+  # Error handling behavior
+  fail_on_ami_error: false  # If true, rollback phone CRUD on AMI failure
+  retry_on_failure: true
+  retry_max_attempts: 3
+  retry_delay_seconds: 5

@@ -28,6 +28,44 @@ router = APIRouter()
 logger = logging.getLogger("provisioner.api.phones")
 
 
+async def trigger_asterisk_reload(config: Config) -> bool:
+    """Trigger Asterisk config regeneration and reload if enabled.
+
+    Args:
+        config: Application configuration
+
+    Returns:
+        True if successful or disabled, False if enabled but failed
+    """
+    if not config.asterisk.enabled:
+        return True
+
+    try:
+        from ...asterisk import AMIClient, AsteriskConfigGenerator
+        from ...inventory import get_inventory
+
+        inventory = get_inventory()
+        templates_dir = config.base_dir / config.paths.templates_dir
+
+        # Create generator and AMI client
+        generator = AsteriskConfigGenerator(templates_dir, config.asterisk)
+        ami_client = AMIClient(config.asterisk)
+
+        # Generate and reload
+        result = await generator.write_and_reload(inventory, ami_client)
+
+        if result["success"]:
+            logger.info("Asterisk configs regenerated and reloaded successfully")
+            return True
+        else:
+            logger.error(f"Asterisk reload failed: {result}")
+            return False
+
+    except Exception as e:
+        logger.error(f"Asterisk reload error: {e}")
+        return False
+
+
 @router.get("", response_model=PhoneListResponse)
 async def list_phones() -> PhoneListResponse:
     """List all phones in inventory.
@@ -112,9 +150,21 @@ async def create_phone(
         # Add phone via repository
         repository.add_phone(phone)
 
+        # Get config for Asterisk reload
+        config = get_config()
+
+        # Trigger Asterisk reload if enabled
+        asterisk_ok = await trigger_asterisk_reload(config)
+        if not asterisk_ok and config.asterisk.fail_on_ami_error:
+            # Rollback: delete the phone we just added
+            repository.delete_phone(phone.mac)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Phone created but Asterisk reload failed. Changes rolled back."
+            )
+
         # Get updated inventory
         inventory = get_inventory()
-        config = get_config()
 
         # Detect vendor
         oui_map = {
@@ -257,6 +307,18 @@ async def update_phone(
     try:
         repository.update_phone(normalized_mac, updates)
 
+        # Get config for Asterisk reload
+        config = get_config()
+
+        # Trigger Asterisk reload if enabled
+        asterisk_ok = await trigger_asterisk_reload(config)
+        if not asterisk_ok and config.asterisk.fail_on_ami_error:
+            # Note: Rollback for update is complex, so we just fail
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Phone updated but Asterisk reload failed."
+            )
+
         # Get updated phone
         inventory = get_inventory()
         phone = inventory.get_phone_by_mac(normalized_mac)
@@ -266,9 +328,6 @@ async def update_phone(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Phone {normalized_mac} not found after update",
             )
-
-        # Detect vendor
-        config = get_config()
         oui_map = {
             "yealink": config.vendor_oui.yealink,
             "fanvil": config.vendor_oui.fanvil,
@@ -328,6 +387,17 @@ async def delete_phone(
     try:
         repository.delete_phone(normalized_mac)
         logger.info(f"Deleted phone {normalized_mac}")
+
+        # Trigger Asterisk reload if enabled
+        config = get_config()
+        asterisk_ok = await trigger_asterisk_reload(config)
+        if not asterisk_ok and config.asterisk.fail_on_ami_error:
+            # Note: Can't easily rollback a delete, so we just warn
+            logger.warning(f"Phone {normalized_mac} deleted but Asterisk reload failed")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Phone deleted but Asterisk reload failed."
+            )
 
     except PhoneNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

@@ -42,6 +42,30 @@ class VendorOUI(BaseModel):
     fanvil: list[str] = Field(default_factory=lambda: ["0C383E", "7C2F80"])
 
 
+class AsteriskConfig(BaseModel):
+    """Asterisk AMI configuration."""
+    enabled: bool = False
+    host: str = "localhost"
+    port: int = 5038
+    username: str = "admin"
+    password: str = "secret"
+    timeout: int = 5
+
+    # Config file paths (on Asterisk server or shared volume)
+    pjsip_config_path: str = "/etc/asterisk/pjsip.conf"
+    extensions_config_path: str = "/etc/asterisk/extensions.conf"
+
+    # Generation settings
+    context: str = "from-internal"
+    transport: str = "transport-udp"
+
+    # Error handling
+    fail_on_ami_error: bool = False
+    retry_on_failure: bool = True
+    retry_max_attempts: int = 3
+    retry_delay_seconds: int = 5
+
+
 class Config(BaseSettings):
     """Main configuration container."""
     server: ServerConfig = Field(default_factory=ServerConfig)
@@ -49,7 +73,8 @@ class Config(BaseSettings):
     pbx: PBXConfig = Field(default_factory=PBXConfig)
     time: TimeConfig = Field(default_factory=TimeConfig)
     vendor_oui: VendorOUI = Field(default_factory=VendorOUI)
-    
+    asterisk: AsteriskConfig = Field(default_factory=AsteriskConfig)
+
     # Base directory (set at runtime)
     base_dir: Path = Field(default_factory=lambda: Path.cwd())
 
@@ -84,6 +109,7 @@ def load_config(config_path: Path | str | None = None) -> Config:
         pbx=PBXConfig(**config_data.get("pbx", {})),
         time=TimeConfig(**config_data.get("time", {})),
         vendor_oui=VendorOUI(**config_data.get("vendor_oui", {})),
+        asterisk=AsteriskConfig(**config_data.get("asterisk", {})),
         base_dir=base_dir,
     )
     

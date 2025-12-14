@@ -1,0 +1,3 @@
+; {{ display_name }} - Extension {{ extension }}
+exten => {{ extension }},1,Dial(PJSIP/{{ extension }},30)
+ same => n,Hangup()
