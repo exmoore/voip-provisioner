@@ -21,9 +21,12 @@ def docker_compose_file() -> Path:
 @pytest.fixture(scope="session")
 def docker_services(docker_compose_file: Path) -> Generator[None, None, None]:
     """Start Docker services for testing."""
+    # Use podman compose
+    compose_cmd = ["podman", "compose"]
+
     # Start services
     subprocess.run(
-        ["docker-compose", "-f", str(docker_compose_file), "up", "-d", "--build"],
+        compose_cmd + ["-f", str(docker_compose_file), "up", "-d", "--build"],
         check=True,
         cwd=docker_compose_file.parent,
     )
@@ -44,7 +47,7 @@ def docker_services(docker_compose_file: Path) -> Generator[None, None, None]:
 
     # Cleanup: Stop and remove services
     subprocess.run(
-        ["docker-compose", "-f", str(docker_compose_file), "down", "-v"],
+        compose_cmd + ["-f", str(docker_compose_file), "down", "-v"],
         check=True,
         cwd=docker_compose_file.parent,
     )

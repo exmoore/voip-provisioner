@@ -1,12 +1,14 @@
 # Asterisk Docker image for integration testing
-FROM debian:bookworm-slim
+# Using Ubuntu as it has Asterisk in repositories
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Asterisk and dependencies
 RUN apt-get update && \
     apt-get install -y \
     asterisk \
-    asterisk-config \
-    asterisk-modules \
     && rm -rf /var/lib/apt/lists/*
 
 # Create necessary directories
@@ -26,4 +28,5 @@ RUN chown asterisk:asterisk /etc/asterisk/*.conf
 EXPOSE 5038 5060/udp
 
 # Run Asterisk in foreground
+USER asterisk
 CMD ["/usr/sbin/asterisk", "-f", "-vvv", "-U", "asterisk", "-G", "asterisk"]
