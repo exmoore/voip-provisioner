@@ -1,0 +1,34 @@
+# Test Dockerfile for provisioner integration tests
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e .
+
+# Copy application code
+COPY src/ src/
+COPY config.yml .
+COPY inventory/ inventory/
+COPY templates/ templates/
+
+# Create config with test Asterisk settings
+RUN echo 'asterisk:\n\
+  enabled: true\n\
+  host: asterisk\n\
+  port: 5038\n\
+  username: admin\n\
+  password: testsecret\n\
+  pjsip_config_path: /asterisk-configs/pjsip.conf\n\
+  extensions_config_path: /asterisk-configs/extensions.conf\n\
+  context: from-internal\n\
+  transport: transport-udp\n\
+  fail_on_ami_error: false\n\
+  retry_on_failure: true\n\
+  retry_max_attempts: 3\n\
+  retry_delay_seconds: 2' >> config.test.yml
+
+EXPOSE 8080
+
+CMD ["python", "-m", "provisioner.server"]

@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  asterisk:
+    build:
+      context: ./asterisk
+      dockerfile: Dockerfile
+    container_name: test-asterisk
+    ports:
+      - "5038:5038"  # AMI
+      - "5060:5060/udp"  # SIP
+    volumes:
+      - asterisk-configs:/etc/asterisk
+    healthcheck:
+      test: ["CMD", "asterisk", "-rx", "core show version"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - test-network
+
+  provisioner:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile.test
+    container_name: test-provisioner
+    depends_on:
+      asterisk:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - asterisk-configs:/asterisk-configs
+      - ../../../inventory:/app/inventory
+      - ../../../templates:/app/templates
+    environment:
+      - ASTERISK_ENABLED=true
+      - ASTERISK_HOST=asterisk
+      - ASTERISK_PORT=5038
+      - ASTERISK_USERNAME=admin
+      - ASTERISK_PASSWORD=testsecret
+      - ASTERISK_PJSIP_CONFIG_PATH=/asterisk-configs/pjsip.conf
+      - ASTERISK_EXTENSIONS_CONFIG_PATH=/asterisk-configs/extensions.conf
+    networks:
+      - test-network
+
+volumes:
+  asterisk-configs:
+
+networks:
+  test-network:
+    driver: bridge
