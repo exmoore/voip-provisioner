@@ -72,20 +72,39 @@ async def ami_client(docker_services: None) -> Manager:
         host="localhost",
         port=5038,
         username="admin",
-        password="testsecret",
+        secret="testsecret",
         ping_delay=10,
     )
     await manager.connect()
     yield manager
-    await manager.close()
+    if manager.close and callable(manager.close):
+        close_result = manager.close()
+        if close_result is not None:
+            await close_result
 
 
 @pytest.fixture(autouse=True)
 def cleanup_between_tests(api_client: httpx.Client):
     """Clean up test data between tests."""
     yield
-    # Cleanup will happen after each test
-    # For now, we'll rely on Docker restart for full cleanup
+    # Cleanup: Delete all phones and phonebook entries after each test
+    try:
+        # Delete all phones
+        response = api_client.get("/api/v1/phones")
+        if response.status_code == 200:
+            phones = response.json().get("phones", [])
+            for phone in phones:
+                api_client.delete(f"/api/v1/phones/{phone['mac']}")
+
+        # Delete all phonebook entries
+        response = api_client.get("/api/v1/phonebook")
+        if response.status_code == 200:
+            entries = response.json().get("entries", [])
+            for entry in entries:
+                api_client.delete(f"/api/v1/phonebook/{entry['name']}")
+    except Exception:
+        # If cleanup fails, continue (tests may have already cleaned up)
+        pass
 
 
 @pytest.fixture

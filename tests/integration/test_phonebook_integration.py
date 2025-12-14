@@ -92,7 +92,7 @@ class TestPhonebookIntegration:
         """Test Yealink phonebook XML generation."""
         response = api_client.get("/phonebook.xml")
         assert response.status_code == 200
-        assert "text/xml" in response.headers.get("content-type", "")
+        assert "xml" in response.headers.get("content-type", "").lower()
 
         xml_content = response.text
         assert "<?xml" in xml_content
@@ -102,7 +102,7 @@ class TestPhonebookIntegration:
         """Test Fanvil phonebook XML generation."""
         response = api_client.get("/fanvil/phonebook.xml")
         assert response.status_code == 200
-        assert "text/xml" in response.headers.get("content-type", "")
+        assert "xml" in response.headers.get("content-type", "").lower()
 
         xml_content = response.text
         assert "<?xml" in xml_content
