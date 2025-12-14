@@ -32,16 +32,6 @@ services:
       - "8080:8080"
     volumes:
       - asterisk-configs:/asterisk-configs
-      - ../../../inventory:/app/inventory
-      - ../../../templates:/app/templates
-    environment:
-      - ASTERISK_ENABLED=true
-      - ASTERISK_HOST=asterisk
-      - ASTERISK_PORT=5038
-      - ASTERISK_USERNAME=admin
-      - ASTERISK_PASSWORD=testsecret
-      - ASTERISK_PJSIP_CONFIG_PATH=/asterisk-configs/pjsip.conf
-      - ASTERISK_EXTENSIONS_CONFIG_PATH=/asterisk-configs/extensions.conf
     networks:
       - test-network
 
