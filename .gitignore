@@ -45,6 +45,11 @@ inventory/secrets.yaml
 *.vault.yml
 *.vault.yaml
 
+# Inventory backups and temp files
+inventory/.backups/
+inventory/*.tmp
+*.tmp
+
 # Local config overrides
 config.local.yml
 config.local.yaml
@@ -56,3 +61,16 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Frontend (for Phase 3)
+node_modules/
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+
+# Root level package files (from MCP servers, etc.)
+/package.json
+/package-lock.json
+
+# Asterisk config files (will be generated)
+asterisk-configs/

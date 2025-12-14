@@ -108,6 +108,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Include API router for REST endpoints
+from .api import api_router
+app.include_router(api_router, prefix="/api/v1")
+
 
 def get_client_ip(request: Request) -> str:
     """Extract client IP from request, handling proxies."""
