@@ -10,6 +10,7 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from .config import Config, get_config, load_config, set_config
 from .generators import FanvilGenerator, YealinkGenerator
@@ -111,6 +112,12 @@ app = FastAPI(
 # Include API router for REST endpoints
 from .api import api_router
 app.include_router(api_router, prefix="/api/v1")
+
+# Serve frontend static files if available
+frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/ui", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+    logger.info(f"Serving frontend from {frontend_dist}")
 
 
 def get_client_ip(request: Request) -> str:
