@@ -80,6 +80,7 @@ export default function PhoneForm({ phone, onClose }: PhoneFormProps) {
       } else {
         await createPhone.mutateAsync({
           ...data,
+          display_name: data.display_name || '',
           codecs: codecsArray,
         });
       }
